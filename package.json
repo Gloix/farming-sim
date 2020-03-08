@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "elm-format": "^0.8.3",
+    "global": "^4.4.0"
+  }
+}
