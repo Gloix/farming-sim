@@ -1,18 +1,13 @@
-module Main exposing (..)
-
-import Bytes as Bytes exposing (Bytes)
-import Http
-
-import Dict exposing (Dict)
+module Main exposing (main)
 
 import PixelEngine exposing (PixelEngine, Area, Input(..), game)
 import PixelEngine.Options as Options exposing (Options)
 
-import Grid.Position as Position exposing (Position)
+import Grid.Position exposing (Position)
 import Grid.Direction exposing (Direction(..))
 
 import GameState as GameState exposing (GameState)
-import WorldTile as WorldTile exposing (WorldTile)
+import WorldTile exposing (WorldTile)
 
 
 type Model
@@ -20,7 +15,7 @@ type Model
 
 
 type Msg
-    = RunningGame GameState.Msg
+    = GameStateMsg GameState.Msg
     | Move Direction
     -- | ChangeInteractionMode
     -- | ChangeUiFocus
@@ -42,17 +37,12 @@ main = game
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( InGame GameState.init
-    , Cmd.map RunningGame (GameState.getImage "town1.png")
+    let
+        (gameState, cmd) = GameState.init
+    in
+    ( InGame gameState
+    , Cmd.map GameStateMsg cmd
     )
-
-
--- imageDecoder : Bytes.Decode.Decoder (Maybe Image)
--- imageDecoder =
---     Bytes.Decode.loop Bytes.empty (\s -> )
-
-
---     Bytes.Decode.map Image.decode (Bytes.Decode.loop () (Bytes.Decode.Done) bytes 100000000)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -60,9 +50,7 @@ update msg (InGame gameState) =
     let
         gameStateMsgM = case msg of
             Move direction -> Just (GameState.Move direction)
-            RunningGame gameStateMsg -> Just gameStateMsg
-            -- ChangeInteractionMode -> Just GameState.ChangeInteractionMode
-            -- ChangeUiFocus -> Just GameState.ChangeUiFocus
+            GameStateMsg gameStateMsg -> Just gameStateMsg
             SecondaryButton1 -> Just GameState.SecondaryButton1
             SecondaryButton2 -> Just GameState.SecondaryButton2
             TileClick event -> Just <| GameState.TileClick event
@@ -72,12 +60,12 @@ update msg (InGame gameState) =
             |> Maybe.map (\x -> GameState.updateGame x gameState)
             |> Maybe.withDefault (gameState, Cmd.none)
     in
-    ( InGame newGameState, Cmd.map RunningGame cmd )
+    ( InGame newGameState, Cmd.map GameStateMsg cmd )
 
 
 areas : Model -> List (Area Msg)
 areas (InGame gameState) =
-    List.map (PixelEngine.mapArea RunningGame) (GameState.areas gameState)
+    List.map (PixelEngine.mapArea GameStateMsg) (GameState.areas gameState)
 
 
 options : Options Msg
