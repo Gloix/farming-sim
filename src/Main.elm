@@ -36,7 +36,7 @@ main = game
     , subscriptions = \_ -> Sub.none
     , view = view
     , controls = controls
-    , width = 100
+    , width = 170
     }
 
 
